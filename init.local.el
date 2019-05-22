@@ -1,29 +1,32 @@
+;; lines for meta data
 ;; * Encapsulate my customization inside a function
 ;    that gets called through radian-after-init-hook
 (defun radian-local--after-init ()
 ;; ** Auto Encryption/Decryption support for gpg and asc files
- (setq epa-armor t)
- (setq epa-file-name-regexp "\\.\\(gpg\\|asc\\)$")
- (epa-file-name-regexp-update)
+  (setq epa-armor t)
+  (setq epa-file-name-regexp "\\.\\(gpg\\|asc\\)$")
+  (epa-file-name-regexp-update)
+
+  (use-package delight)
 
 ;; ** csv-mode package
- (use-package csv-mode)
+  (use-package csv-mode)
 
 ;; ** 'general' package
- (use-package general
-   ;;mbk :straight t
-   :demand t
-   :config
-   (general-override-mode))
+  (use-package general
+    ;;mbk :straight t
+    :demand t
+    :config
+    (general-override-mode))
 
 ;; *** Create our own definer and make 'SPC' the leader key
- ;;    straight from general docuentation
- (general-create-definer tyrant-def
-   :states '(normal motion visual insert emacs)
-   :prefix "SPC"
-   :non-normal-prefix "M-SPC"
-   :prefix-command 'tyrant-prefix-command
-   :prefix-map 'tyrant-prefix-map)
+  ;;    straight from general docuentation
+  (general-create-definer tyrant-def
+    :states '(normal motion visual insert emacs)
+    :prefix "SPC"
+    :non-normal-prefix "M-SPC"
+    :prefix-command 'tyrant-prefix-command
+    :prefix-map 'tyrant-prefix-map)
 
 ;; ** evil package
   (use-package evil
@@ -31,9 +34,8 @@
     :demand t
     :init
     (setq evil-want-keybinding nil)
-    (setq evil-want-integration nil)
     :general
-    ;; more than one keybinding can be specified for any given keyward can be specified this way
+    ;; more than one (ie. multiple) keybinding can be specified for any given keyword this way
     ;; don't understand the concept of keyword arguments and how parameters are bound to arguments
     ;; move over visual lines like normal lines
     (:states '(motion normal)
@@ -88,9 +90,12 @@
     :config
     (evil-commentary-mode))
 
+  ;; minor-mode-alist variable determines how minormode are displayed
   (use-package evil-escape
     :after evil
-    :init (evil-escape-mode)
+    :init
+    (evil-escape-mode)
+    (setq evil-escape-lighter nil)
     :config
     (setq-default evil-escape-key-sequence "qn")
     (setq-default evil-escape-undordered-key-sequence t)
@@ -140,23 +145,38 @@
               "a" 'evil-inner-arg)
     (:keymaps 'evil-outer-text-objects-map
               "a" 'evil-outer-arg)
-      )
+    )
 
+;; ** outshine
   (use-package outshine
     :defer 2
+    :delight ;; could even use " Osh"
     ;;mbk :straight t
     :hook ((prog-mode . outshine-mode)
            )
     :config
+    ;; works (setcar (cdr (assq 'outshine-mode minor-mode-alist)) " Osh") ;; default is " Outshine"
     ;; Narrowing now works within the headline rather than requiring to be on it
+    (setq outshine-org-style-global-cycling-at-bob-p t)
     (advice-add 'outshine-narrow-to-subtree :before
                 (lambda (&rest args) (unless (outline-on-heading-p t)
                                        (outline-previous-visible-heading 1))))
-;;mbk    :general
-;;mbk    (:keymaps 'outline-minor-mode-map
-;;mbk              "M-RET" 'outshine-insert-heading
-;;mbk              "S-M-RET" 'outshine-insert-subheading
-;;mbk              "<backtab>" 'outshine-cycle-buffer)
+    :general
+    (:definer 'minor-mode
+     :keymaps 'outshine-mode
+     :states  '(normal motion)
+     "<backtab>" #'outshine-cycle-buffer
+     "M-TAB"     #'outshine-cycle
+     "gh"        #'outline-up-heading
+     "gj"        #'outline-forward-same-level
+     "gk"        #'outline-backward-same-level
+     "gl"        #'outline-next-visible-heading
+     "gu"        #'outline-previous-visible-heading)
+    (:definer 'minor-mode
+     :keymaps 'outshine-mode
+     :states  '(insert)
+     "M-RET"   #'outshine-insert-heading
+     "S-M-RET" #'outshine-insert-subheading)
     )
 
   (use-package evil-lion
@@ -178,36 +198,36 @@
 
   ;; Application Keybindings
   (tyrant-def
-   :keymaps 'override
-   "a"  '(:ignore t :which-key "Applications")
-   "ad" 'dired-jump
-   "ae" 'eshell
-   "ar" 'ranger
-   "aw" 'wttrin
-   )
+    :keymaps 'override
+    "a"  '(:ignore t :which-key "Applications")
+    "ad" 'dired-jump
+    "ae" 'eshell
+    "ar" 'ranger
+    "aw" 'wttrin
+    )
   ;; Buffer Keybindings
   (tyrant-def
     :keymaps 'override
 
-   "b"  '(:ignore t :which-key "Buffers")
-   ;;"bb" 'helm-mini
-   ;;"bc" 'cpm/copy-whole-buffer-to-clipboard
-   "bD" 'kill-buffer-and-window
-   ;;"bd" 'cpm/kill-this-buffer
-   "be" 'erase-buffer
-   ;; "bf" 'cpm/browse-file-directory
-   ;;"bj" 'cpm/jump-in-buffer
-   "bk" 'evil-delete-buffer
-   "bK" 'crux-kill-other-buffers
-   "bl" 'display-line-numbers-mode
-   ;;"bN" 'cpm/new-buffer-new-frame
-   "bo" 'ivy-switch-buffer-other-window
-   "br" 'revert-buffer
-   "bs" 'counsel-switch-buffer
-   "bR" 'crux-rename-buffer-and-file
-   "bt" 'open-dir-in-iterm
-   )
- ;; File Keybindings
+    "b"  '(:ignore t :which-key "Buffers")
+    ;;"bb" 'helm-mini
+    ;;"bc" 'cpm/copy-whole-buffer-to-clipboard
+    "bD" 'kill-buffer-and-window
+    ;;"bd" 'cpm/kill-this-buffer
+    "be" 'erase-buffer
+    ;; "bf" 'cpm/browse-file-directory
+    ;;"bj" 'cpm/jump-in-buffer
+    "bk" 'evil-delete-buffer
+    "bK" 'crux-kill-other-buffers
+    "bl" 'display-line-numbers-mode
+    ;;"bN" 'cpm/new-buffer-new-frame
+    "bo" 'ivy-switch-buffer-other-window
+    "br" 'revert-buffer
+    "bs" 'counsel-switch-buffer
+    "bR" 'crux-rename-buffer-and-file
+    "bt" 'open-dir-in-iterm
+    )
+  ;; File Keybindings
   (tyrant-def
     :keymaps 'override
 
@@ -220,35 +240,35 @@
     "fy" '(cpm/show-and-copy-buffer-filename :which-key "show/copy")
     )
 
- ;; Search Keybindings
+  ;; Search Keybindings
   (tyrant-def
     :keymaps 'override
 
     "s"  '(:ignore t :which-key "Search")
     "sa" 'evil-avy-goto-char-timer
     "sw" 'evil-avy-goto-word-or-subword-1
-   )
+    )
 
- ;; Outline minor mode
-;;mbk   (tyrant-def
-;;mbk     :keymaps 'override
-;;mbk
-;;mbk     "n"  '(:ignore t :which-key "Narrow")
-;;mbk     ;; Narrowing
-;;mbk     "nn" '#outshine-narrow-to-subtree
-;;mbk     "nw" '#widen
-;;mbk
-;;mbk     ;; Structural edits (use the keys defined by evil-collection-outline)
-;;mbk    )
-;;mbk    (tyrant-def
-;;mbk     :keymaps 'outline-minor-mode-map
-;;mbk     :states '(normal visual motion)
-;;mbk     "gh" 'outline-up-heading
-;;mbk     "gj" 'outline-forward-same-level
-;;mbk     "gk" 'outline-backward-same-level
-;;mbk     "gl" 'outline-next-visible-heading ;; also on ']]' (evil-collection-outline)
-;;mbk     "gu" 'outline-previous-visible-heading ;; also on '[[' (evil-collection-outline)
-;;mbk     )
+  ;; Outline minor mode
+  ;;mbk   (tyrant-def
+  ;;mbk     :keymaps 'override
+  ;;mbk
+  ;;mbk     "n"  '(:ignore t :which-key "Narrow")
+  ;;mbk     ;; Narrowing
+  ;;mbk     "nn" '#outshine-narrow-to-subtree
+  ;;mbk     "nw" '#widen
+  ;;mbk
+  ;;mbk     ;; Structural edits (use the keys defined by evil-collection-outline)
+  ;;mbk    )
+  ;;mbk    (tyrant-def
+  ;;mbk     :keymaps 'outline-minor-mode-map
+  ;;mbk     :states '(normal visual motion)
+  ;;mbk     "gh" 'outline-up-heading
+  ;;mbk     "gj" 'outline-forward-same-level
+  ;;mbk     "gk" 'outline-backward-same-level
+  ;;mbk     "gl" 'outline-next-visible-heading ;; also on ']]' (evil-collection-outline)
+  ;;mbk     "gu" 'outline-previous-visible-heading ;; also on '[[' (evil-collection-outline)
+  ;;mbk     )
   )
 
 
@@ -257,7 +277,6 @@
 (setq straight-use-package-by-default t)
 (setq use-package-verbose t)
 (setq evil-want-keybinding nil)
-(setq evil-want-integration nil)
 (defvar outline-minor-mode-prefix "\M-#")
 
 (add-hook 'radian-after-init-hook #'radian-local--after-init)
